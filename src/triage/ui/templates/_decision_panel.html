@@ -1,0 +1,37 @@
+{% set d = case.final_decision or case.decision %}
+<div id="decision-panel" class="card">
+  <h2>Decision · <span class="pill">{{ case.status.replace('_', ' ') }}</span>
+    {% if case.decided_by %}<span class="muted"> by {{ case.decided_by }}</span>{% endif %}</h2>
+  {% if d %}
+    <p><b class="{{ d.verdict }}">{{ d.verdict }}</b> · {{ d.technique_id }}
+      {% if d.tactics %}<span class="muted">({{ d.tactics | join(', ') }})</span>{% endif %}
+      · action <b>{{ d.recommended_action }}</b>
+      {% if d.confidence is defined and d.confidence is not none %} · confidence {{ '%.2f' % d.confidence }}{% endif %}</p>
+    {% if d.rationale %}<p>{{ d.rationale }}</p>{% endif %}
+  {% else %}
+    <p class="muted">No valid model decision.</p>
+  {% endif %}
+  {% if case.gate_reasons %}<p class="muted">Sent for review: {{ case.gate_reasons | join(', ') }}</p>{% endif %}
+
+  {% if case.status == 'pending_approval' %}
+    {% if is_analyst %}
+      <form class="row" hx-post="/cases/{{ case.case_id }}/approve" hx-target="#decision-panel" hx-swap="outerHTML">
+        <input name="comment" placeholder="comment (optional)" size="40">
+        <button class="primary" {% if not d %}disabled{% endif %}>Approve</button>
+        <button type="button" class="danger" hx-post="/cases/{{ case.case_id }}/reject" hx-target="#decision-panel"
+                hx-swap="outerHTML" hx-include="closest form">Reject</button>
+      </form>
+      <form class="row" hx-post="/cases/{{ case.case_id }}/edit" hx-target="#decision-panel" hx-swap="outerHTML">
+        <b>Edit &amp; approve:</b>
+        <select name="verdict">{% for v in verdicts %}<option {{ 'selected' if d and d.verdict == v }}>{{ v }}</option>{% endfor %}</select>
+        <input name="technique_id" value="{{ d.technique_id if d else 'none' }}" size="10" list="cands">
+        <datalist id="cands">{% for c in case.candidates or [] %}<option value="{{ c.technique_id }}">{{ c.name }}</option>{% endfor %}</datalist>
+        <select name="recommended_action">{% for a in actions %}<option {{ 'selected' if d and d.recommended_action == a }}>{{ a }}</option>{% endfor %}</select>
+        <input name="comment" placeholder="why" size="24">
+        <button>Save</button>
+      </form>
+    {% else %}
+      <p class="muted">Read-only: approving requires the analyst role.</p>
+    {% endif %}
+  {% endif %}
+</div>

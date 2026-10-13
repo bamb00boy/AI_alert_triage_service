@@ -1,0 +1,16 @@
+{
+  "built_at": "2026-10-12T21:44:13+00:00",
+  "sources": {
+    "firehol_level1": "https://github.com/firehol/blocklist-ipsets (firehol_level1.netset)",
+    "feodotracker": "https://feodotracker.abuse.ch/downloads/ipblocklist.txt",
+    "urlhaus": "https://urlhaus.abuse.ch/downloads/hostfile/",
+    "threatfox": "https://threatfox.abuse.ch/downloads/hostfile/",
+    "tranco": "https://tranco-list.eu/ (top 10000)"
+  },
+  "files": {
+    "bad_networks.csv": "a24412d876f8e35b85f98b60ebc31aa99da49ba539f63619ef3cb72c593a33ac",
+    "bad_domains.csv": "ce5a2a80f17822e64021779ac3e0027a824c68e4839d77803789dc849c611d1c",
+    "good_domains.csv": "92c11011ded1b87fb74ccc37c66e4b871fb61db4b8b2d326af0ddb0c0a6cf59a"
+  },
+  "version": "9b09b150ca41adf9"
+}

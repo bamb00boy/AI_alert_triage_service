@@ -1,0 +1,16 @@
+venv/
+local/
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+
+.env
+.DS_Store
+.claude/settings.local.json
+CLAUDE.md
+
+# downloaded / generated data (see scripts/fetch_data.sh)
+data/raw/
+data/work/

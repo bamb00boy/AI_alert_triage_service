@@ -1,0 +1,72 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install
+        run: pip install -e "packages/triage_connectors[test]" -e ".[dev]"
+      - name: Connector SDK tests
+        working-directory: packages/triage_connectors
+        run: pytest -q
+      - name: Service tests
+        run: pytest -q
+
+  eval-smoke:
+    # Runs the evaluation on the replay provider: real retrieval (pgvector + bge-small) and
+    # real enrichment (ti-service), with model responses replayed from tests/fixtures/eval_smoke_cassette.jsonl.
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:0.8.7-pg17-trixie
+        env:
+          POSTGRES_USER: triage_owner
+          POSTGRES_PASSWORD: triage_owner
+          POSTGRES_DB: triage
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U triage_owner -d triage" --health-interval 3s --health-retries 30
+    env:
+      TRIAGE_OTLP_ENDPOINT: ""
+      TRIAGE_TI_URL: http://localhost:8001
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install
+        run: pip install -e packages/triage_connectors -e ".[embed]"
+      - name: Cache embedding model
+        uses: actions/cache@v4
+        with:
+          path: local/models/fastembed
+          key: fastembed-bge-small-en-v1.5
+      - name: Database roles and migrations
+        env:
+          PGHOST: localhost
+          PGPASSWORD: triage_owner
+          POSTGRES_USER: triage_owner
+          POSTGRES_DB: triage
+          APP_DB_PASSWORD: triage_app
+        run: |
+          bash docker/postgres/initdb/10-roles.sh
+          python -m triage.migrate
+      - name: Embed ATT&CK into pgvector
+        run: python scripts/load_attack.py
+      - name: Start ti-service
+        run: |
+          uvicorn --factory triage.ti_service.app:create_app --port 8001 > ti-service.log 2>&1 &
+          for i in $(seq 1 60); do curl -fs http://localhost:8001/healthz && break; sleep 1; done
+      - name: Evaluation smoke test (replay provider)
+        run: >-
+          python -m triage.evaluation.runner --configs ollama+rag retrieval-only
+          --limit 20 --injection 0 --replay --fail-on-miss
+          --cassette tests/fixtures/eval_smoke_cassette.jsonl

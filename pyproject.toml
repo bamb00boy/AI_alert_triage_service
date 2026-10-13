@@ -1,0 +1,72 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "triage"
+version = "0.1.0"
+description = "Local-first LLM alert triage pipeline: ingest -> enrich -> retrieve -> triage -> safety gate -> human approval"
+requires-python = ">=3.12"
+dependencies = [
+  "triage-connectors",
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.32",
+  "pydantic>=2.9",
+  "pydantic-settings>=2.6",
+  "aio-pika>=9.5",
+  "asyncpg>=0.30",
+  "pgvector>=0.3.6",
+  "httpx>=0.28",
+  "jinja2>=3.1",
+  "authlib>=1.3",
+  "itsdangerous>=2.2",
+  "python-multipart>=0.0.12",
+  "numpy>=2.0",
+  "opentelemetry-api>=1.28",
+  "opentelemetry-sdk>=1.28",
+  "opentelemetry-exporter-otlp-proto-http>=1.28",
+  "opentelemetry-instrumentation-fastapi>=0.49b0",
+  "opentelemetry-instrumentation-httpx>=0.49b0",
+  "opentelemetry-instrumentation-asyncpg>=0.49b0",
+]
+
+[project.optional-dependencies]
+embed = ["fastembed>=0.5"]
+dev = [
+  "pytest>=8.3",
+  "pytest-asyncio>=0.24",
+  "respx>=0.21",
+  "ruff>=0.7",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/triage"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+markers = [
+  "integration: needs the docker compose stack running",
+]
+addopts = "-m 'not integration' -p no:cacheprovider"
+
+[tool.ruff]
+line-length = 125
+target-version = "py312"
+src = ["src", "packages/triage_connectors/src"]
+cache-dir = "local/tmp/ruff"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "ASYNC", "S", "SIM", "RUF"]
+ignore = [
+  "S101",   # assert in tests
+  "S311",   # random is fine for jitter / sampling
+  "RUF001", "RUF002", "RUF003",
+  "B008",   # FastAPI Depends() in defaults
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S", "B"]
+"packages/triage_connectors/tests/**" = ["S", "B"]
+"scripts/**" = ["S603", "S607"]

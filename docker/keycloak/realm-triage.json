@@ -1,0 +1,67 @@
+{
+  "realm": "triage",
+  "enabled": true,
+  "sslRequired": "none",
+  "roles": {
+    "realm": [
+      { "name": "analyst", "description": "Can approve, edit and reject triage decisions" },
+      { "name": "viewer", "description": "Read-only access to cases" }
+    ]
+  },
+  "users": [
+    {
+      "username": "alice",
+      "enabled": true,
+      "email": "alice@example.test",
+      "emailVerified": true,
+      "firstName": "Alice",
+      "lastName": "Analyst",
+      "credentials": [{ "type": "password", "value": "alice", "temporary": false }],
+      "realmRoles": ["analyst", "viewer"]
+    },
+    {
+      "username": "victor",
+      "enabled": true,
+      "email": "victor@example.test",
+      "emailVerified": true,
+      "firstName": "Victor",
+      "lastName": "Viewer",
+      "credentials": [{ "type": "password", "value": "victor", "temporary": false }],
+      "realmRoles": ["viewer"]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "approval-ui",
+      "name": "Triage approval UI",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "approval-ui-dev-secret",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["http://localhost:8002/*"],
+      "webOrigins": ["http://localhost:8002"],
+      "attributes": {
+        "post.logout.redirect.uris": "http://localhost:8002/*",
+        "pkce.code.challenge.method": "S256"
+      },
+      "protocolMappers": [
+        {
+          "name": "realm roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": {
+            "claim.name": "roles",
+            "jsonType.label": "String",
+            "multivalued": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ]
+}

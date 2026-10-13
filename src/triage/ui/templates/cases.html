@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<p class="tabs">
+  {% for s in statuses %}
+    <a href="/?status={{ s }}" class="{{ 'on' if s == status }}">{{ s.replace('_', ' ') }} ({{ counts.get(s, 0) }})</a>
+  {% endfor %}
+  <a href="/?status=all" class="{{ 'on' if status == 'all' }}">all</a>
+</p>
+<table>
+  <thead><tr><th>Case</th><th>Created</th><th>Rule</th><th>Severity</th><th>Verdict</th><th>Technique</th>
+    <th>Conf.</th><th>Action</th><th>Why a human</th><th>Status</th></tr></thead>
+  <tbody>
+  {% for r in rows %}
+    <tr>
+      <td><a href="/cases/{{ r.case_id }}">#{{ r.case_id }}</a></td>
+      <td class="muted">{{ r.created_at.strftime('%m-%d %H:%M:%S') }}</td>
+      <td>{{ r.rule_title }}</td>
+      <td>{{ r.severity }}</td>
+      <td class="{{ r.verdict }}">{{ r.verdict or '—' }}</td>
+      <td>{{ r.technique_id or '—' }}</td>
+      <td>{{ '%.2f' % r.confidence if r.confidence is not none else '—' }}</td>
+      <td>{{ r.recommended_action or '—' }}</td>
+      <td class="muted">{{ r.gate_reasons | join(', ') }}</td>
+      <td><span class="pill">{{ r.status.replace('_', ' ') }}</span></td>
+    </tr>
+  {% else %}
+    <tr><td colspan="10" class="muted">No cases.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

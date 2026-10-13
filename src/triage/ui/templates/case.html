@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+<p><a href="/">← cases</a></p>
+<h1 style="font-size:18px">#{{ case.case_id }} · {{ case.rule_title }} <span class="muted">({{ case.severity }})</span></h1>
+
+{% include "_decision_panel.html" %}
+
+<div class="grid" style="margin-top:16px">
+  <div class="card">
+    <h2>Retrieved ATT&amp;CK candidates</h2>
+    <table>
+      {% for c in case.candidates or [] %}
+        <tr><td>{{ c.technique_id }}</td><td>{{ c.name }}</td><td class="muted">{{ c.tactics | join(', ') }}</td>
+            <td class="muted">{{ '%.3f' % c.score }}</td></tr>
+      {% endfor %}
+    </table>
+  </div>
+  <div class="card">
+    <h2>Threat intel</h2>
+    {% for i in (case.enrichment or {}).get('indicators', []) %}
+      <p><b>{{ i.type }}</b> {{ i.value }} → <span class="{{ i.reputation }}">{{ i.reputation }}</span><br>
+        {% for s in i.sources %}<span class="muted">{{ s.connector }}: {{ s.verdict }} — {{ s.summary }}</span><br>{% endfor %}</p>
+    {% else %}
+      <p class="muted">No external indicators.</p>
+    {% endfor %}
+  </div>
+  <div class="card">
+    <h2>Alert (untrusted input)</h2>
+    <pre>{{ alert | pretty }}</pre>
+  </div>
+  <div class="card">
+    <h2>Model attempts</h2>
+    <table>
+      {% for a in case.llm_attempts or [] %}
+        <tr><td>{{ a.provider }}</td><td class="muted">{{ a.model }}</td><td>{{ 'ok' if a.ok else a.error }}</td>
+            <td class="muted">{{ a.prompt_tokens + a.completion_tokens }} tok · {{ '%.0f' % a.latency_ms }} ms</td></tr>
+      {% endfor %}
+    </table>
+    <p class="muted">prompt {{ case.prompt_version }} · trace {{ case.trace_id }}</p>
+  </div>
+</div>
+
+<div class="card" style="margin-top:16px">
+  <h2>Audit trail (append-only)</h2>
+  <table>
+    {% for e in audit %}
+      <tr><td class="muted">{{ e.seq }}</td><td class="muted">{{ e.ts.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+          <td>{{ e.actor }}</td><td>{{ e.event_type }}</td><td><pre>{{ e.payload | pretty }}</pre></td></tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

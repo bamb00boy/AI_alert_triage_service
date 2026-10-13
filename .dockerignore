@@ -1,0 +1,8 @@
+venv
+local
+data/raw
+data/work
+tests
+.git
+.claude
+**/__pycache__
