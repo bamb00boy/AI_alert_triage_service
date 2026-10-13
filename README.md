@@ -1,5 +1,8 @@
 # AI alert triage service
 
+[![ci](https://github.com/bamb00boy/AI_alert_triage_service/actions/workflows/ci.yml/badge.svg)](https://github.com/bamb00boy/AI_alert_triage_service/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 A local-first pipeline that triages security alerts with a small local LLM, and is careful about it:
 alerts arrive on an HMAC-signed webhook, are enriched with threat intel, matched against MITRE ATT&CK
 by vector retrieval, classified by a model whose output is constrained and validated, and then pass a
@@ -281,3 +284,18 @@ docker/, docker-compose.yml         image, Postgres roles, Keycloak realm
 scripts/               fetch/build data, install/run model servers, replay, load ATT&CK
 docs/labelling_rules.md
 ```
+
+## Data sources and licenses
+
+The code is MIT-licensed ([LICENSE](LICENSE)). The data snapshots under `data/` are third-party and keep
+their own terms:
+
+| Folder | Source | Terms |
+|---|---|---|
+| `data/attack/` | [MITRE ATT&CK](https://attack.mitre.org/) Enterprise v19.2 ([STIX data](https://github.com/mitre-attack/attack-stix-data)) | © The MITRE Corporation, reproduced under MITRE's license — [data/attack/LICENSE.txt](data/attack/LICENSE.txt) |
+| `data/alerts/` | derived from [EVTX-ATTACK-SAMPLES](https://github.com/sbousseaden/EVTX-ATTACK-SAMPLES) with [Hayabusa](https://github.com/Yamato-Security/hayabusa) and Sigma rules | GPL-3.0 — [data/alerts/NOTICE.md](data/alerts/NOTICE.md) |
+| `data/ti/` | [FireHOL](https://iplists.firehol.org/), [abuse.ch](https://abuse.ch/) (URLhaus, ThreatFox, Feodo Tracker), [Tranco](https://tranco-list.eu/) | per source — [data/ti/NOTICE.md](data/ti/NOTICE.md) |
+
+Raw downloads (`scripts/fetch_data.sh`), the Hayabusa binary and the model weights are not part of the
+repository.
+

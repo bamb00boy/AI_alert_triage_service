@@ -7,6 +7,7 @@ name = "triage"
 version = "0.1.0"
 description = "Local-first LLM alert triage pipeline: ingest -> enrich -> retrieve -> triage -> safety gate -> human approval"
 requires-python = ">=3.12"
+license = { text = "MIT" }
 dependencies = [
   "triage-connectors",
   "fastapi>=0.115",
